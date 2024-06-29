@@ -1,7 +1,7 @@
 # Raylib CMake Starter for C++
 
 This is a starter project for using [Raylib](https://www.raylib.com/) with C++ and CMake.
-**WARNING: Only tested on MacOS**
+It comes packaged with Ralib, RayGUI, and ENet for Networking
 
 
 ## Getting Started
