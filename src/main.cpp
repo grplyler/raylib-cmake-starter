@@ -1,89 +1,119 @@
-#define RAYGUI_IMPLEMENTATION
-#include "raygui.h"
+/*******************************************************************************************
+*
+*   raylib-extras [ImGui] example - Docking example
+*
+*	This is an example of using the ImGui docking features that are part of docking branch
+*	You must replace the default imgui with the code from the docking branch for this to work
+*	https://github.com/ocornut/imgui/tree/docking
+*
+*   Copyright (c) 2024 Jeffery Myers
+*
+********************************************************************************************/
 
-#define RGLAYOUT_IMPLEMENTATION
-#include "rglayout.h"
+#include "raylib.h"
+#include "raymath.h"
 
-#include <string.h>
-#include <stdio.h>
-#include <cstring>
-#include <cstdio>
+#include "imgui.h"
+#include "rlImGui.h"
 
-// Helper function to draw debug buttons (similar to Odin's DebugButtonEx)
-static void DebugButton(Rectangle rect, const char* label) {
-    // Draw button with distinctive colors for debugging layout
-    static int button_counter = 0;
-    char button_text[64];
-
-    if (label != NULL) {
-        strncpy(button_text, label, sizeof(button_text) - 1);
-    } else {
-        std::snprintf(button_text, sizeof(button_text), "Button %d", button_counter++);
-    }
-
-    GuiButton(rect, button_text);
+// DPI scaling functions
+float ScaleToDPIF(float value)
+{
+	return GetWindowScaleDPI().x * value;
 }
 
-//------------------------------------------------------------------------------------
-// Sidebar Settings Demo
-//------------------------------------------------------------------------------------
-int main(void)
+int ScaleToDPII(int value)
 {
-    // Initialization
-    //--------------------------------------------------------------------------------------
-    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-    InitWindow(720, 480, "RayGUI Layout - 3Panel Demo");
-    SetTargetFPS(60);
+    return int(GetWindowScaleDPI().x * value);
+}
 
-    // Load GUI style - try multiple possible paths
-    GuiLoadStyle("vendor/raygui/styles/cyber/style_cyber.rgs");
+int main(int argc, char* argv[])
+{
+	// Initialization
+	//--------------------------------------------------------------------------------------
+	int screenWidth = 1280;
+	int screenHeight = 800;
 
-    // GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
-    Color bg_color = GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR));
+	// do not set the FLAG_WINDOW_HIGHDPI flag, that scales a low res framebuffer up to the native resolution.
+	// use the native resolution and scale your geometry.
+	SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE);
+	InitWindow(screenWidth, screenHeight, "raylib-Extras [ImGui] example - Docking");
+	SetTargetFPS(144);
+	rlImGuiSetup(true);
 
-    // Layout Settings
-    RGLSetDefaultGap(10.0f);
-    RGLSetDefaultPadAll(0.0f);
+	bool run = true;
 
-    // Main game loop
-    while (!WindowShouldClose())
-    {
-        if (IsKeyPressed(KEY_Q)) break;
+	bool showDemoWindow = true;
 
-        // Update (nothing yet)
+	// Enable docking support (requires docking branch of ImGui)
+#ifdef IMGUI_HAS_DOCK
+	ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+#endif
+#ifdef IMGUI_ENABLE_DOCKING
+	ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+#endif
 
-        // Draw
-        BeginDrawing();
-        ClearBackground(bg_color);
+	// Main game loop
+	while (!WindowShouldClose() && run)    // Detect window close button or ESC key, or a quit from the menu
+	{
+		BeginDrawing();
+		ClearBackground(DARKGRAY);
 
-        float screen_w = (float)GetScreenWidth();
-        float screen_h = (float)GetScreenHeight();
-        Rectangle panel = {0, 0, screen_w, screen_h};
+		// draw something to the raylib window below the GUI.
+		DrawCircle(GetScreenWidth() / 2, GetScreenHeight() / 2, GetScreenHeight() * 0.45f, DARKGREEN);
 
-        // Toplevel Column: Header(50px), Content(stretch), Footer(50px)
-        RGLPlan column_plan = GuiPlanCreate((float[]){50, -1}, 2);
-        GuiPlanSetPadAll(&column_plan, 10);
-        GuiBeginColumn(panel, &column_plan);
+		// start ImGui content
+		rlImGuiBegin();
 
-            // Header Row
-             DebugButton(GuiLayoutRec(-1, -1), "Header");
+		// if you want windows to dock to the viewport, call this.
+#if defined(IMGUI_HAS_DOCK) || defined(IMGUI_ENABLE_DOCKING)
+		ImGui::DockSpaceOverViewport(0,  NULL, ImGuiDockNodeFlags_PassthruCentralNode); // set ImGuiDockNodeFlags_PassthruCentralNode so that we can see the raylib contents behind the dockspace
+#endif
 
-            // Content Row with 3 columns: Left(flex 1), Center(flex 3), Right(flex 1)
-            RGLPlan content_plan = GuiPlanCreate((float[]){1, 3, 1}, 3);
-            GuiBeginRow(GuiLayoutRec(-1, -1), &content_plan);
-                DebugButton(GuiLayoutRec(-1, -1), "Left\nSidebar");      // Left Sidebar
-                DebugButton(GuiLayoutRec(-1, -1), "Main\nContent");      // Center Content
-                DebugButton(GuiLayoutRec(50, -1), "Right\nSidebar");;
-            GuiLayoutEnd();
+		// show a simple menu bar
+		if (ImGui::BeginMainMenuBar())
+		{
+			if (ImGui::BeginMenu("File"))
+			{
+				if (ImGui::MenuItem("Quit"))
+					run = false;
 
+				ImGui::EndMenu();
+            }
 
-        GuiLayoutEnd(); // Toplevel Column
+			if (ImGui::BeginMenu("Window"))
+            {
+                if (ImGui::MenuItem("Demo Window", nullptr, showDemoWindow))
+					showDemoWindow = !showDemoWindow;
 
+                ImGui::EndMenu();
+            }
+			ImGui::EndMainMenuBar();
+		}
 
-        EndDrawing();
-    }
+		// show some windows
+	
+		if (showDemoWindow)
+			ImGui::ShowDemoWindow(&showDemoWindow);
 
-    // De-Initialization
-    CloseWindow(); // Close window and OpenGL context
-    return 0;
+		if (ImGui::Begin("Test Window"))
+		{
+			ImGui::TextUnformatted("Another window");
+		}
+		ImGui::End();
+
+		// end ImGui Content
+		rlImGuiEnd();
+
+		EndDrawing();
+		//----------------------------------------------------------------------------------
+	}
+	rlImGuiShutdown();
+
+	// De-Initialization
+	//--------------------------------------------------------------------------------------   
+	CloseWindow();        // Close window and OpenGL context
+	//--------------------------------------------------------------------------------------
+
+	return 0;
 }

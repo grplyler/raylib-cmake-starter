@@ -21,6 +21,10 @@ endif()
 
 add_subdirectory(vendor/raylib)
 
+# Include vendor libraries using external CMake files (not modifying submodules)
+include(cmake/vendor/imgui.cmake)
+include(cmake/vendor/rlImGui.cmake)
+
 # Link required system frameworks for macOS
 if(APPLE)
     find_library(COCOA_LIBRARY Cocoa)
@@ -46,6 +50,10 @@ target_include_directories(raylib-starter PRIVATE vendor/rglayout/src)
 
 # Link against raylib
 target_link_libraries(raylib-starter PRIVATE raylib)
+
+# Link rlImGui (if available)
+target_include_directories(raylib-starter PRIVATE vendor/rlImGui)
+target_link_libraries(raylib-starter PRIVATE rlImGui)
 
 # Link macOS frameworks
 if(APPLE)
