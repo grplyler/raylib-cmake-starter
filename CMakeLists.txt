@@ -4,35 +4,60 @@ project(raylib-starter)
 
 set(CMAKE_CXX_STANDARD 14)
 
+# Define ANGLE usage (must be before raylib subdirectory)
+set(USE_ANGLE OFF)
+if (USE_ANGLE)
+    # Configure raylib to use OpenGL ES when using ANGLE
+    set(OPENGL_VERSION "ES 2.0" CACHE STRING "OpenGL Version to build raylib with")
+    set(GRAPHICS "GRAPHICS_API_OPENGL_ES2" CACHE STRING "Graphics API")
+    
+    # Define PLATFORM_DESKTOP_GLFW so raylib uses glad_gles2.h instead of system GLES2 headers
+    add_definitions(-DPLATFORM_DESKTOP_GLFW)
+else()
+    # Configure raylib to use desktop OpenGL when not using ANGLE
+    set(OPENGL_VERSION "3.3" CACHE STRING "OpenGL Version to build raylib with")
+    set(GRAPHICS "GRAPHICS_API_OPENGL_33" CACHE STRING "Graphics API")
+endif()
+
 add_subdirectory(vendor/raylib)
-add_subdirectory(vendor/enet)
+
+# Link required system frameworks for macOS
+if(APPLE)
+    find_library(COCOA_LIBRARY Cocoa)
+    # find_library(OPENGL_LIBRARY OpenGL)
+    find_library(IOKIT_LIBRARY IOKit)
+    find_library(CORE_FOUNDATION_LIBRARY CoreFoundation)
+    find_library(CORE_VIDEO_LIBRARY CoreVideo)
+endif()
 
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 
 # Main executable
-# add_executable(raylib-starter ${SOURCES})
-
-# ENet executable
-add_executable(raylib-starter-enet src/main_enet.cpp)
+add_executable(raylib-starter src/main.cpp)
 
 # Add raylib include directory
-# target_include_directories(raylib-starter PRIVATE vendor/raylib/src)
-target_include_directories(raylib-starter-enet PRIVATE vendor/raylib/src)
+target_include_directories(raylib-starter PRIVATE vendor/raylib/src)
 
 # Add raygui include directory
-# target_include_directories(raylib-starter PRIVATE vendor/raygui/src)
-target_include_directories(raylib-starter-enet PRIVATE vendor/raygui/src)
+target_include_directories(raylib-starter PRIVATE vendor/raygui/src)
 
-# Add enet include directory
-target_include_directories(raylib-starter-enet PRIVATE vendor/enet/include)
-include_directories(vendor/enet/include)
+# Add rglayout include directory
+target_include_directories(raylib-starter PRIVATE vendor/rglayout/src)
 
-# Link against raylib  and enet
-# target_link_libraries(raylib-starter raylib enet)
-target_link_libraries(raylib-starter-enet raylib enet)
+# Link against raylib
+target_link_libraries(raylib-starter PRIVATE raylib)
 
-# Define path to ANGLE libraries if using ANGLE
-set(USE_ANGLE OFF)
+# Link macOS frameworks
+if(APPLE)
+    target_link_libraries(raylib-starter PRIVATE 
+        ${COCOA_LIBRARY} 
+        ${IOKIT_LIBRARY} 
+        ${CORE_FOUNDATION_LIBRARY} 
+        ${CORE_VIDEO_LIBRARY}
+    )
+endif()
+
+# Configure ANGLE libraries if using ANGLE
 if (USE_ANGLE)
     set(ANGLE_LIBRARY_DIR "${CMAKE_SOURCE_DIR}/libs")
 
@@ -46,16 +71,12 @@ if (USE_ANGLE)
     endif()
 
     # Set runtime path for ANGLE libraries
-    # set_target_properties(raylib-starter PROPERTIES
-    #     BUILD_RPATH ${ANGLE_LIBRARY_DIR}
-    # )
-    set_target_properties(raylib-starter-enet PROPERTIES
+    set_target_properties(raylib-starter PROPERTIES
         BUILD_RPATH ${ANGLE_LIBRARY_DIR}
     )
 endif()
 
 # Link against ANGLE if using ANGLE
 if (USE_ANGLE)
-    # target_link_libraries(raylib-starter ${ANGLE_GLESv2_LIBRARY} ${ANGLE_EGL_LIBRARY})
-    target_link_libraries(raylib-starter-enet ${ANGLE_GLESv2_LIBRARY} ${ANGLE_EGL_LIBRARY})
+    target_link_libraries(raylib-starter ${ANGLE_GLESv2_LIBRARY} ${ANGLE_EGL_LIBRARY})
 endif()
