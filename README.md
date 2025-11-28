@@ -1,7 +1,7 @@
 # Raylib CMake Starter for C++
 
 This is a starter project for using [Raylib](https://www.raylib.com/) with C++ and CMake.
-It comes packaged with Ralib, RayGUI, and ENet for Networking
+It comes packaged with Raylib, Raygui, RGLayout (mine), and imgui (with docker) integration with raylib (branch: imgui)
 
 
 ## Getting Started
@@ -11,22 +11,23 @@ It comes packaged with Ralib, RayGUI, and ENet for Networking
 3. Build `./b`
 4. Run `./r`
 
-## Building with Google ANGLE (10x more draw calls on Apple Silicon) (Only tested on MacOS)
+![with rglayout](screenshots/3panel.png)
 
-1. Grab ANGLE Dylibs from Your Google Chrome Installation
 
-```
-cd /Applications/Google\ Chrome.app
-find ./ -name libGLESv2.dylib
-find ./ -name libEGL.dylib
-```
+## With Dear ImGui
 
-2. Copy the Dylibs to `libs/`
+1. Checkout the `imgui` branch
+2. Initialize the submodules: `git submodule update --init --recursive`
+3. Build `./b`
+4. Run `./r`
 
-3. Build with ANGLE `./b angle`
+![with imgui](screenshots/imgui.png)
 
 ## TODO
 
-- [x] Support for ANGLE
+- [x] Add Dear ImGui integration with Raylib
+- [x] Add rglayout 
+- [ ] Support for ANGLE on MacOS (4x+ draw calls performance gains)
+- [ ] Support for https://github.com/Bigfoot71/r3d for more advanced rendering with Raylib
 - [ ] Support more Platforms
-- [ ] Add ENet for Networking 
+- [ ] Add optional ENet for Networking 
