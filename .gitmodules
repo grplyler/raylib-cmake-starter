@@ -10,3 +10,9 @@
 [submodule "vendor/rglayout"]
 	path = vendor/rglayout
 	url = git@github.com:grplyler/rglayout.git
+[submodule "vendor/rlImGui"]
+	path = vendor/rlImGui
+	url = https://github.com/raylib-extras/rlImGui.git
+[submodule "vendor/imgui"]
+	path = vendor/imgui
+	url = https://github.com/ocornut/imgui.git
